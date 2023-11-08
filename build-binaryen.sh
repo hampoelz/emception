@@ -19,7 +19,8 @@ BINARYEN_BUILD=$BUILD/binaryen
 
 # If we don't have a copy of binaryen, make one
 if [ ! -d $BINARYEN_SRC/ ]; then
-    git clone --depth 1 https://github.com/WebAssembly/binaryen.git "$BINARYEN_SRC/"
+    # in order to get git describe correctly, we need to not use --depth 1
+    git clone https://github.com/WebAssembly/binaryen.git "$BINARYEN_SRC/"
 
     pushd $BINARYEN_SRC/
 
@@ -69,6 +70,9 @@ if [ ! -d $BINARYEN_BUILD/ ]; then
     # Undo that.
     sed -i -E 's/\.mjs-/.js-/g' $BINARYEN_BUILD/build.ninja
     sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $BINARYEN_BUILD/build.ninja
+
+    # fix wrong strange bug that generates 'ninja_required_version1.5' instead of 'ninja_required_version = 1.5'
+    sed -i 's/ninja_required_version1\.5/ninja_required_version = 1.5/g' $BINARYEN_BUILD/build.ninja
 
     # Patch the build script to add the "binaryen-box" target.
     # This new target bundles many executables in one, reducing the total size.

@@ -4,12 +4,12 @@
   "author": "jprendes",
   "license": "MIT",
   "main": "dist/llvm-box.mjs",
-  "type": "module",
+  "type": "commonjs",
   "types": "llvm-box.d.mts",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
   "dependencies": {
-    "@types/emscripten": "^1.39.8"
+    "@types/emscripten": "^1.39.10"
   }
 }

@@ -7,3 +7,4 @@ upstream/
 
 # demo
 demo/node_modules
+.idea/

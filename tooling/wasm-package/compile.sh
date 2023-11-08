@@ -7,6 +7,9 @@ if [ "$BUILD" == "" ]; then
     BUILD="."
 fi
 
+# force clang to be the first
+PATH="${EMSDK}/upstream/bin:${PATH}"
+
 WASM_UTILS="$SRC/../wasm-utils"
 
 SRC=$(realpath $SRC)
