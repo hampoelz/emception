@@ -37,10 +37,11 @@ if [ ! -d $QUICKNODE_BUILD/ ]; then
     
     # Make sure we build js modules (.mjs).
     # The patch-ninja.sh script assumes that.
-    sed -i -E 's/\.js/.mjs/g' $QUICKNODE_BUILD/build.ninja
+    sed -E 's/quicknode\.js/quicknode\.mjs/g' $QUICKNODE_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $QUICKNODE_BUILD/build.ninja
 
     # The mjs patching is over zealous, and patches some source JS files rather than just output files.
     # Undo that.
-    sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $QUICKNODE_BUILD/build.ninja
+#    sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $QUICKNODE_BUILD/build.ninja
 fi
 cmake --build $QUICKNODE_BUILD/ -- quicknode

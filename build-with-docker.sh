@@ -3,6 +3,7 @@
 SRC=$(dirname $0)
 SRC=$(realpath "$SRC")
 
+echo "Building docker image"
 pushd $SRC/docker
 docker build \
     -t emception_build \
@@ -16,7 +17,5 @@ docker run \
     -v /var/run/docker.sock:/var/run/docker.sock \
     -v $(pwd):$(pwd) \
     -v $(pwd)/build/emsdk_cache:/emsdk/upstream/emscripten/cache \
-    -u $(id -u):$(id -g) \
-    $(id -G | tr ' ' '\n' | xargs -I{} echo --group-add {}) \
-    emception_build:latest \
+    emception_build \
     bash -c "cd $(pwd) && ./build.sh"

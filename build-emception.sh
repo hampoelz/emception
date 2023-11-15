@@ -35,20 +35,23 @@ cp $BUILD/brotli/brotli.{mjs,wasm} $BUILD/emception/brotli/
 mkdir -p $BUILD/emception/wasm-package/
 cp $BUILD/wasm-package/wasm-package.{mjs,wasm} $BUILD/emception/wasm-package/
 
+echo "building packs"
 $SRC/build-packs.sh $BUILD
 
+echo "copying packs"
 mkdir -p $BUILD/emception/packages
 cp $BUILD/packs/*.pack $BUILD/emception/packages
 
+echo "compressing packs"
 EXT=".pack"
 if [ "$EMCEPTION_NO_COMPRESS" != "1" ]; then
     # Use brotli compressed packages
     EXT=".pack.br"
     for PACK in $BUILD/emception/packages/*.pack; do
         PACK=$(basename $PACK .pack)
-        brotli --best --keep $BUILD/emception/packages/$PACK.pack &
+        echo ${PACK}
+        brotli --best --keep $BUILD/emception/packages/$PACK.pack
     done
-    wait
 fi
 
 IMPORTS=""

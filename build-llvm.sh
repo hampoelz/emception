@@ -39,6 +39,7 @@ fi
 
 # Cross compiling llvm needs a native build of "llvm-tblgen" and "clang-tblgen"
 if [ ! -d $LLVM_NATIVE/ ]; then
+    echo "Configuring LLVM_NATIVE"
     cmake -G Ninja \
         -S $LLVM_SRC/llvm/ \
         -B $LLVM_NATIVE/ \
@@ -49,6 +50,7 @@ fi
 cmake --build $LLVM_NATIVE/ -- llvm-tblgen clang-tblgen
 
 if [ ! -d $LLVM_BUILD/ ]; then
+    echo "Configuring LLVM_BUILD"
     CXXFLAGS="-Dwait4=__syscall_wait4" \
     LDFLAGS="\
         -s LLD_REPORT_UNDEFINED=1 \
@@ -74,13 +76,20 @@ if [ ! -d $LLVM_BUILD/ ]; then
         -DLLVM_TABLEGEN=$LLVM_NATIVE/bin/llvm-tblgen \
         -DCLANG_TABLEGEN=$LLVM_NATIVE/bin/clang-tblgen
 
+    echo "Patching build.ninja"
     # Make sure we build js modules (.mjs).
     # The patch-ninja.sh script assumes that.
-    sed -i -E 's/\.js/.mjs/g' $LLVM_BUILD/build.ninja
+    sed -E 's/\.js/.mjs/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $LLVM_BUILD/build.ninja
 
     # The mjs patching is over zealous, and patches some source JS files rather than just output files.
     # Undo that.
-    sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $LLVM_BUILD/build.ninja
+    sed -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $LLVM_BUILD/build.ninja
+
+    # fix wrong strange bug that generates 'ninja_required_version1.5' instead of 'ninja_required_version = 1.5'
+    sed -E 's/ninja_required_version1\.5/ninja_required_version = 1.5/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $LLVM_BUILD/build.ninja
 
     # Patch the build script to add the "llvm-box" target.
     # This new target bundles many executables in one, reducing the total size.
@@ -94,5 +103,9 @@ if [ ! -d $LLVM_BUILD/ ]; then
         > $TMP_FILE
     cat $TMP_FILE >> $LLVM_BUILD/build.ninja
     popd
+
+    # fix wrong strange bug that generates 'ninja_required_version1.5' instead of 'ninja_required_version = 1.5'
+    sed -E 's/ninja_required_version1\.5/ninja_required_version = 1.5/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $LLVM_BUILD/build.ninja
 fi
 cmake --build $LLVM_BUILD/ -- llvm-box

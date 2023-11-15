@@ -18,6 +18,7 @@ $SRC/make.sh # builds files in the current working directory
 for PACK in ./*; do
     if [ -d "$PACK" ]; then
         PACK=$(basename $PACK)
+        echo $PACK
         pushd $PACK
             $BUILD/tooling/wasm-package pack ../../$PACK.pack $(find .)
         popd

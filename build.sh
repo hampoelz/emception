@@ -4,6 +4,7 @@ SRC=$(dirname $0)
 BUILD="$1"
 
 if [ "$BUILD" == "" ]; then
+    mkdir -p $(pwd)/build
     BUILD=$(pwd)/build
 fi
 

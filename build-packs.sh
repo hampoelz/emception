@@ -14,6 +14,11 @@ if [ ! -d $BUILD/packs/ ]; then
     mkdir -p $BUILD/packs/
 fi
 
+echo "build pack emscripten"
 $SRC/packs/emscripten/package.sh $BUILD
+
+echo "build pack cpython"
 $SRC/packs/cpython/package.sh $BUILD
+
+echo "build pack wasm"
 $SRC/packs/wasm/package.sh $BUILD

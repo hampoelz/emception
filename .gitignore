@@ -7,4 +7,9 @@ upstream/
 
 # demo
 demo/node_modules
+
+# dev tools
 .idea/
+
+# OS settings
+.DS_Store

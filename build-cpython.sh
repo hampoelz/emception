@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [ "$(uname)" == "Darwin" ]; then
+    alias nproc="sysctl -n hw.ncpu"
+fi
+
 SRC=$(dirname $0)
 
 BUILD="$1"
@@ -13,6 +17,9 @@ if [ "$BUILD" == "" ]; then
     BUILD=$(pwd)/build
 fi
 
+# to be safe and guarantee the folder exists
+mkdir -p "$BUILD"
+
 SRC=$(realpath "$SRC")
 BUILD=$(realpath "$BUILD")
 CPYTHON_BUILD=$BUILD/cpython
@@ -20,16 +27,15 @@ CPYTHON_NATIVE=$BUILD/cpython-native
 
 # If we don't have a copy of cpython, make one
 if [ ! -d $CPYTHON_SRC/ ]; then
-    # in order to get git describe correctly, we need to not use --depth 1
-    git clone https://github.com/python/cpython.git "$CPYTHON_SRC/"
+    git clone --depth 1 -b emception https://github.com/InfiniBrains/cpython.git "$CPYTHON_SRC/"
 
     pushd $CPYTHON_SRC/
 
-    # This is the last tested commit of cpython.
-    # Feel free to try with a newer version
-    COMMIT=b8a9f13abb61bd91a368e2d3f339de736863050f
-    git fetch origin $COMMIT
-    git reset --hard $COMMIT
+#    # This is the last tested commit of cpython.
+#    # Feel free to try with a newer version
+#    COMMIT=b8a9f13abb61bd91a368e2d3f339de736863050f
+#    git fetch origin $COMMIT
+#    git reset --hard $COMMIT
 
     popd
 fi
@@ -37,7 +43,7 @@ fi
 if [ ! -d $CPYTHON_NATIVE/ ]; then
     # Rever the cpython patch in case this runs after the wasm version reconfigures it.
     pushd $CPYTHON_SRC/
-    git apply -R $SRC/patches/cpython.patch
+#    git apply -R $SRC/patches/cpython.patch
     autoreconf -i
     popd
 
@@ -45,7 +51,7 @@ if [ ! -d $CPYTHON_NATIVE/ ]; then
 
     pushd $CPYTHON_NATIVE/
 
-    $CPYTHON_SRC/configure -C
+    $CPYTHON_SRC/configure -C --host=x86_64-pc-linux-gnu --build=$($CPYTHON_SRC/config.guess) --with-suffix=""
     make -j$(nproc)
 
     popd
@@ -54,7 +60,7 @@ fi
 if [ ! -d $CPYTHON_BUILD/ ]; then
     # Patch cpython to add a module to evaluate JS code.
     pushd $CPYTHON_SRC/
-    git apply $SRC/patches/cpython.patch
+#    git apply $SRC/patches/cpython.patch
     autoreconf -i
     popd
 

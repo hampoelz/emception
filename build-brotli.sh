@@ -47,11 +47,12 @@ if [ ! -d $BROTLI_BUILD/ ]; then
         -DCMAKE_BUILD_TYPE=Release
     
     # Make sure we build js modules (.mjs).
-    sed -i -E 's/\.js/.mjs/g' $BROTLI_BUILD/build.ninja
+    sed -E 's/brotli\.js/brotli\.mjs/g' $BROTLI_BUILD/build.ninja > /tmp/build.ninja
+    mv /tmp/build.ninja $BROTLI_BUILD/build.ninja
 
     # The mjs patching is over zealous, and patches some source JS files rather than just output files.
     # Undo that.
-    sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $BROTLI_BUILD/build.ninja
+    #sed -i -E 's/(pre|post|proxyfs|fsroot)\.mjs/\1.js/g' $BROTLI_BUILD/build.ninja
 fi
 cmake --build $BROTLI_BUILD/ -- brotli.mjs
 
