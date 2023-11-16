@@ -14,20 +14,12 @@ function run(cmd, options={ maxBuffer: 1024 * 1024 * 256 }) {
 }
 
 async function hash_folder(root) {
-    try {
-        let ret = await run(`cd "${root}" && find . -type f -print0 | sort -z | xargs -0 openssl sha1 | openssl sha1`);
-        return "h" + ret.trim().split(" ")[1];
-    } catch (e){
-        console.error(e);
-    }
+    let ret = await run(`cd "${root}" && find . -type f -print0 | sort -z | xargs -0 openssl sha1 | openssl sha1`);
+    return "h" + ret.trim().split(" ")[1];
 }
 async function weight_folder(root) {
-    try {
-        let ret = await run(`cd "${root}" && find . -type f -print0 | sort -z | xargs -0 cat | wc -c`);
-        return parseInt(ret.trim().split(" ")[0]);
-    } catch (e) {
-        console.log(e);
-    }
+    let ret = await run(`cd "${root}" && find . -type f -print0 | sort -z | xargs -0 cat | wc -c`);
+    return parseInt(ret.trim().split(" ")[0]);
 }
 async function folder_tree(root, parent = null) {
     let basename = path.basename(root);

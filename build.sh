@@ -33,3 +33,6 @@ $SRC/build-brotli.sh "$BUILD" "$BROTLI_SRC"
 
 echo "#Building Emception:"
 $SRC/build-emception.sh "$BUILD"
+
+echo "#Building Demo"
+$SRC/build-demo.sh "$BUILD"

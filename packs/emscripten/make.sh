@@ -32,7 +32,7 @@ mv _package.json package.json
 patch -p2 < $SRC/emscripten.patch
 
 # Install dependencies (but nor development dependencies)
-npm i
+npm i --production
 
 # Remove a bunch of things we won't use
 rm -Rf \
@@ -46,19 +46,19 @@ rm -Rf \
     ./third_party/ply \
     ./third_party/websockify \
     ./tools/websocket_to_posix_proxy \
-    ./*.bat
+    ./*.bat \
+    ./cache/build
+# remove "cache/build" to avoid dealing with empty directories
 
-#CONTAINER_ID=$(docker create emscripten/emsdk:3.1.24)
-#docker cp $CONTAINER_ID:/emsdk/upstream/emscripten/cache ./cache
-#docker rm $CONTAINER_ID
-
-# simplified version since we are inside a docker container
-# todo: create a way to detect if the cache exists
-cp -R /emsdk/upstream/emscripten/cache ./cache
+if [ -d /emsdk/upstream/emscripten/cache ]; then
+  cp -R /emsdk/upstream/emscripten/cache ./cache
+else
+  CONTAINER_ID=$(docker create emscripten/emsdk:3.1.24)
+  docker cp $CONTAINER_ID:/emsdk/upstream/emscripten/cache ./cache
+  docker rm $CONTAINER_ID
+fi
 
 popd
 
 echo "split_packages:"
-node --version
-node "$SRC/split_packages.js"
-echo "packages split"
+node "$SRC/split_packages.js" | bash
