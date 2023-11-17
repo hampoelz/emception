@@ -68,7 +68,9 @@ class Emception {
         fileSystem.symlink("/lazy/cpython", "/usr/local/lib");
         fileSystem.symlink("/lazy/wasm", "/wasm");
 
-        await Promise.all(preloads.map((preload) => fileSystem.preloadLazy(`/lazy/${preload}`)));
+        for (const preload of preloads) {
+            await fileSystem.preloadLazy(`/lazy/${preload}`);
+        }
 
         fileSystem.mkdirTree("/working");
 

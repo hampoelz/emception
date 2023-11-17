@@ -1,4 +1,3 @@
-console.log("split_packages.js");
 const { exec } = require('child_process')
 const fs = require("fs");
 const path = require("path");
@@ -23,9 +22,7 @@ async function weight_folder(root) {
 }
 async function folder_tree(root, parent = null) {
     let basename = path.basename(root);
-    console.log("h: "+root);
     let hashfolder = await hash_folder(root);
-    console.log("w: "+root);
     let weightfolder = await weight_folder(root);
     const node = {
         name: basename,
@@ -100,7 +97,6 @@ async function folder_tree(root, parent = null) {
 
 // Asyncfy to get bash shell safely
 (async () => {
-    console.log("fulltree calc:")
     const full_tree = await folder_tree("./emscripten");
     const system_tree = await full_tree.child("system");
     const cache_tree = await full_tree.child("cache");
@@ -115,7 +111,7 @@ async function folder_tree(root, parent = null) {
             todo.push(...Object.values(node.children));
         }
     }
-    console.log("C");
+
     function dfs(tree, callback) {
         for (const node of Object.values(tree.children)) {
             const res = dfs(node, callback);
@@ -123,17 +119,17 @@ async function folder_tree(root, parent = null) {
         }
         return callback(tree);
     }
-    console.log("D");
+
     function find_hash(hash) {
         return bfs(system_tree, (node) => {
             if (node.hash === hash) return node;
         });
     }
-    console.log("E");
+
     function format_number(n) {
         return (((100 * n) | 0) / 100 + 1e-4).toString().replace(/(\.\d\d).*/,"$1")
     }
-    console.log("F");
+
     function format_bytes(n) {
         const units = ["B", "kB", "MB", "GB", "TB"];
         if (n <= 900) {
@@ -148,7 +144,7 @@ async function folder_tree(root, parent = null) {
         }
         return format_number(n) + " " + units[units.length - 1];
     }
-    console.log("G");
+
 // Find duplication
     const links = [];
     bfs(cache_tree, (node) => {
@@ -159,7 +155,6 @@ async function folder_tree(root, parent = null) {
         return null;
     });
 
-    console.log("H");
 // Split emscripten/system/ in smaller packages
     const packages = [];
     function pack(root, nodes, min_size = 1e6) {
@@ -178,25 +173,24 @@ async function folder_tree(root, parent = null) {
 
         return true;
     }
-    console.log("I");
+
     dfs(system_tree, (node) => {
         const root = path.normalize(path.join(full_tree.path, "..", "emscripten_" + node.path_from(full_tree, "_")));
         if (pack(root, [node])) return;
         if (pack(root, Object.values(node.children))) return;
     });
 
-    console.log("J");
+
 // The precompiled libraries are handled separately
     const cache_lib = cache_tree.child("sysroot/lib/wasm32-emscripten");
-    console.log("K");
     cache_lib.path_override = path.normalize(path.join(full_tree.path, "..", cache_lib.path_from(full_tree, "_")));
-    console.log("L");
+
     for (const folder of ["docs", "media", "node_modules", "third_party"]) {
         const node = full_tree.child(folder);
         const root = path.normalize(path.join(full_tree.path, "..", `emscripten_${folder}`));
         pack(root, [node], 0);
     }
-    console.log("L");
+
     console.log("## Split emscripten/system/ in smaller packages");
     for (const [root, content] of packages) {
         let self_size = 0;
@@ -211,7 +205,7 @@ async function folder_tree(root, parent = null) {
             console.log(`    ln -s ${path.relative(node.parent.path, node.path)} ${path.join(node.parent.path, node.name)}`);
         }
     }
-    console.log("M");
+
     console.log("# Link back duplication of emscripten/system/ in emscripten/cache/");
     console.log(`# Saving ${format_bytes(cache_tree.size - cache_lib.size - cache_tree.self_size)} out of ${format_bytes(cache_tree.size - cache_lib.size)}`)
     for (const [node, orig] of links) {

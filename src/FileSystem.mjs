@@ -1,7 +1,6 @@
 import EmProcess from "./EmProcess.mjs";
 import WasmPackageModule from "./wasm-package/wasm-package.mjs";
 import createLazyFolder, { doFetch } from "./createLazyFolder.mjs"
-import Thenable from "./Thenable.mjs";
 import BrotliProcess from "./BrotliProcess.mjs";
 
 export default class FileSystem extends EmProcess {
@@ -36,17 +35,20 @@ export default class FileSystem extends EmProcess {
         }
     }
 
-    #cachedDownload(url, async = false) {
+    async #cachedDownload(url, async = false) {
+
         const cache = this._cache;
         const hash = btoa(url).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
         const ext = url.replace(/^.*?(\.[^\.]+)?$/, "$1");
         const cache_file = `${cache}/${hash}${ext}`;
-        if (this.exists(cache_file)) return new Thenable(cache_file);
-        return new Thenable(doFetch(url, async)).then((data) => {
-            this.writeFile(cache_file, data);
-            this.push();
+
+        if (this.exists(cache_file))
             return cache_file;
-        });
+        let data = await doFetch(url, async);
+
+        this.writeFile(cache_file, data);
+        await this.push();
+        return cache_file;
     }
 
     #ignorePermissions(f) {
@@ -63,7 +65,9 @@ export default class FileSystem extends EmProcess {
     #lazyLoadsDone = new Set();
 
     #lazyLoad(path, url, packaged = false, async = false) {
+
         if (this.#lazyLoadsDone.has(url)) return;
+
         return this.#cachedDownload(url, async).then((cache_file) => {
             this.#ignorePermissions(() => {
                 if (this.#lazyLoadsDone.has(url)) return;
@@ -145,8 +149,8 @@ export default class FileSystem extends EmProcess {
         return this.#pull;
     }
 
-    push() {
-        return new Promise((resolve, reject) => this.FS.syncfs(false, function (err) {
+    async push() {
+        return await new Promise((resolve, reject) => this.FS.syncfs(false, function (err) {
             if (err) {
                 reject(err);
             } else {
