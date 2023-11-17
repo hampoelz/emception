@@ -34,5 +34,6 @@ $SRC/build-brotli.sh "$BUILD" "$BROTLI_SRC"
 echo "#Building Emception:"
 $SRC/build-emception.sh "$BUILD"
 
-echo "#Building Demo"
-$SRC/build-demo.sh "$BUILD"
+# todo: make it work on only one shot!
+#echo "#Building Demo"
+#$SRC/build-demo.sh "$BUILD"

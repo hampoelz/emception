@@ -17,11 +17,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Log in to registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+#      - name: Log in to registry
+#        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u $ --password-stdin
+      # cache 'upstream' and 'demo/node_modules' folders
+      - uses: actions/cache@v2
+        with:
+          path: | 
+            upstream
+            demo/node_modules
+          key: ${{ runner.os }}-upstream-${{ hashFiles('**/upstream/llvm-project/llvm/VERSION.txt') }}
+          restore-keys: ${{ runner.os }}-upstream-
+
       - name: Build
         run: |
           ./build-with-docker.sh
+
+      # install node 14
+      - uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Build demo
+        run: |
+          ./build-demo.sh
 
       - name: GitHub Pages
         env:
