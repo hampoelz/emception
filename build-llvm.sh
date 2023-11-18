@@ -108,4 +108,6 @@ if [ ! -d $LLVM_BUILD/ ]; then
     sed -E 's/ninja_required_version1\.5/ninja_required_version = 1.5/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
     mv /tmp/build.ninja $LLVM_BUILD/build.ninja
 fi
-cmake --build $LLVM_BUILD/ -- llvm-box
+# llvm is memory hungry, so only use 2 threads instead of the default 4
+# todo: detect memory and use more threads if we have enough
+cmake --build $LLVM_BUILD/ --parallel 2 -- llvm-box

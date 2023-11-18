@@ -87,7 +87,7 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
         --with-suffix=".mjs" \
         --disable-wasm-preload \
         --enable-wasm-js-module \
-        --with-build-python=$CPYTHON_NATIVE/python.exe \
+        --with-build-python=$CPYTHON_NATIVE/python \
 
     emmake make -j$(nproc)
 

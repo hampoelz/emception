@@ -25,7 +25,8 @@ jobs:
           path: | 
             upstream
             demo/node_modules
-          key: ${{ runner.os }}-upstream-${{ hashFiles('**/upstream/llvm-project/llvm/VERSION.txt') }}
+            build/emsdk_cache
+          key: ${{ runner.os }}-${{ hashFiles('build/emsdk_cache/sanity.txt') }}-${{ hashFiles('demo/package-lock.json') }}
           restore-keys: ${{ runner.os }}-upstream-
 
       - name: Build
@@ -35,26 +36,28 @@ jobs:
       # install node 14
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
 
       - name: Build demo
         run: |
           ./build-demo.sh
 
-      - name: GitHub Pages
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: crazy-max/ghaction-github-pages@v2.6.0
+      # deploy build/demo to gh-pages
+      - uses: peaceiris/actions-gh-pages@v3
         with:
-          build_dir: build/demo/
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/demo
+          publish_branch: gh-pages
+          force_orphan: true
 
-#      - uses: actions/upload-artifact@v3
-#        with:
-#          name: dist
-#          path: |
-#            ./build/llvm/bin/llvm-box.wasm
-#            ./build/llvm/bin/llvm-box.mjs
-#          retention-days: 7
+      - name: Zip artifact for deployment
+        run: zip build.zip ./build/* -r
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: ./build.zip
+          retention-days: 7
 
 
 #  release:
