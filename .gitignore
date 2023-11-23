@@ -6,7 +6,7 @@ upstream/
 **/*.idx
 
 # demo
-demo/node_modules
+**/node_modules
 
 # dev tools
 .idea/

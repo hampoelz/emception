@@ -89,7 +89,7 @@ if [ ! -d $BINARYEN_BUILD/ ]; then
         $BINARYEN_BUILD/build.ninja \
         binaryen-box \
         $BUILD/tooling \
-        wasm-as wasm-ctor-eval wasm-emscripten-finalize wasm-metadce wasm-opt wasm-shell \
+        wasm2js wasm-as wasm-ctor-eval wasm-emscripten-finalize wasm-metadce wasm-opt wasm-shell \
         > $TMP_FILE
     cat $TMP_FILE >> $BINARYEN_BUILD/build.ninja
     popd
