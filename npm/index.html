@@ -7,11 +7,44 @@
 <p>It uses <a href="https://emscripten.org/">Emscripten</a> to compile C++ code to WebAssembly and runs it in a sandboxed environment.</p>
 <p>It is a work in progress and not ready for production use.</p>
 <p>Try it out by entering some C++ code below and clicking the "Compile" button.</p>
-<textarea id="cpp" style="width: 100%; height: 200px;"> </textarea>
 <button id="compile">Compile</button>
-<textarea id="output" style="width: 100%; height: 200px;"> </textarea>
+<textarea id="cpp" style="width: 100%; height: 200px;">
+#include<iostream>
+#include<string>
+using namespace std;
+int main(){
+  string name;
+  cin >> name;
+  cout << "Hello " << name << "!" << endl;
+  return 0;
+}
+</textarea>
+<textarea id="output" style="width: 100%; height: 100px;"></textarea>
+<textarea id="stdin" style="width: 30%; height: 100px; display: inline-block; padding: 1%"></textarea>
+<textarea id="stdout" style="width: 30%; height: 100px; display: inline-block; padding: 1% "></textarea>
+<textarea id="expected" style="width: 30%; height: 100px; display: inline-block; padding: 1% "></textarea>
 
 <script>
+    // intercept stdin
+    window.prompt = function() {
+      return document.getElementById("stdin").value;
+    }
+
+    // todo: intercept console.log and console.error
+
+    // todo: prejs not working yet
+    const prejs = `
+    var Module = {
+      stdin: function() {
+        return document.getElementById("stdin").value;
+      },
+      stdout: function(str) {
+        return document.getElementById("stdout").value += str + "\\n";
+      },
+      stderr: function(str) {
+        return document.getElementById("stdout").value += str + "\\n";
+      },
+    };`;
     const onprocessstart = (argv) => {
         console.log("onprocessstart", argv);
         // document.getElementById("output").value += argv + "\n";
@@ -39,6 +72,7 @@
     var loadingState = EmceptionState.MainNotLoaded;
     var emception;
 
+    // todo: bug: this state machine is not running for the second time
     async function preCompile(){
         console.log("preCompile", loadingState);
         switch (loadingState) {
@@ -93,7 +127,9 @@
         console.log("Compiling C++ code...\n");
         try {
             await emception.fileSystem.writeFile("/working/main.cpp", cppValue);
-            const cmd = `em++ -O2 -fexceptions -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 -sEXPORT_NAME='CppAreaModule' main.cpp -o main.js`;
+            // await emception.fileSystem.writeFile("/working/pre.js", prejs);
+            // todo: add prejs to emscripten command --pre-js pre.js
+            const cmd = `em++ -O2 -fexceptions -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 main.cpp -o main.js`;
             onprocessstart(`/emscripten/${cmd}`.split(/\s+/g));
             console.log(`$ ${cmd}\n\n`);
             const result = await emception.run(cmd);
