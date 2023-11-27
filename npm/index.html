@@ -9,12 +9,25 @@
 <p>Try it out by entering some C++ code below and clicking the "Compile" button.</p>
 <textarea id="cpp" style="width: 100%; height: 200px;"> </textarea>
 <button id="compile">Compile</button>
+<textarea id="output" style="width: 100%; height: 200px;"> </textarea>
 
 <script>
-    const onprocessstart = (argv) => console.log("onprocessstart", argv);
-    const onprocessend = () => console.log("onprocessend");
-    const onstdout = (str) => console.log(str);
-    const onstderr = (str) => console.error(str);
+    const onprocessstart = (argv) => {
+        console.log("onprocessstart", argv);
+        // document.getElementById("output").value += argv + "\n";
+    };
+    const onprocessend = () => {
+        console.log("onprocessend");
+        // document.getElementById("output").value += "onprocessend" + "\n";
+    };
+    const onstdout = (str) => {
+        console.log(str);
+        document.getElementById("output").value += str + "\n";
+    };
+    const onstderr = (str) =>{
+        console.error(str);
+        document.getElementById("output").value += str + "\n";
+    };
 
     const EmceptionState = {
         MainNotLoaded:0,
@@ -74,6 +87,7 @@
     };
 
     async function compile(){
+        document.getElementById("output").value = "";
         const cppValue = document.getElementById("cpp").value;
 
         console.log("Compiling C++ code...\n");
@@ -102,6 +116,4 @@
         await preCompile();
     });
 </script>
-
-
 </body></html>
