@@ -13,3 +13,5 @@ upstream/
 
 # OS settings
 .DS_Store
+
+npm/dist/

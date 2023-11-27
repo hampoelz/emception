@@ -1,0 +1,107 @@
+<!doctype html><html><head><meta charset="utf-8"><title>Emception</title><meta name="viewport" content="width=device-width,initial-scale=1">
+</head>
+<body>
+
+<h1>Emception</h1>
+<p>Emception is a web-based C++ compiler and runtime environment.</p>
+<p>It uses <a href="https://emscripten.org/">Emscripten</a> to compile C++ code to WebAssembly and runs it in a sandboxed environment.</p>
+<p>It is a work in progress and not ready for production use.</p>
+<p>Try it out by entering some C++ code below and clicking the "Compile" button.</p>
+<textarea id="cpp" style="width: 100%; height: 200px;"> </textarea>
+<button id="compile">Compile</button>
+
+<script>
+    const onprocessstart = (argv) => console.log("onprocessstart", argv);
+    const onprocessend = () => console.log("onprocessend");
+    const onstdout = (str) => console.log(str);
+    const onstderr = (str) => console.error(str);
+
+    const EmceptionState = {
+        MainNotLoaded:0,
+        MainLoading:1,
+        MainLoaded:2,
+        EmceptionLoading:3,
+        EmceptionLoaded:4,
+    }
+    var loadingState = EmceptionState.MainNotLoaded;
+    var emception;
+
+    async function preCompile(){
+        console.log("preCompile", loadingState);
+        switch (loadingState) {
+            case EmceptionState.MainNotLoaded:
+                loadingState = EmceptionState.MainLoading;
+                var script = document.createElement('script');
+                script.src = 'main.js';
+                script.onload = ()=>{
+                    console.log("Main script loaded");
+                    loadingState = EmceptionState.MainLoaded;
+                    preCompile();
+                }
+                document.head.appendChild(script);
+                return false;
+            case EmceptionState.MainLoading:
+                console.log("Main script is still loading. Please wait.");
+                return false
+            case EmceptionState.MainLoaded:
+                console.log("initializing Emception...");
+                loadingState = EmceptionState.EmceptionLoading;
+                emception = new Emception.default();
+                emception.onstdout = onstdout;
+                emception.onstderr = onstderr;
+                emception.onprocessstart = onprocessstart;
+                emception.onprocessend = onprocessend;
+                await emception.init();
+                loadingState = EmceptionState.EmceptionLoaded;
+                console.log("Emception initialized");
+                preCompile();
+                return false;
+            case EmceptionState.EmceptionLoading:
+                console.log("Emception is still loading. Please wait.");
+                return false;
+            case EmceptionState.EmceptionLoaded:
+                await compile();
+                return true;
+        }
+    }
+
+    window.onerror = function(event) {
+        // TODO: do not warn on ok events like simulating an infinite loop or exitStatus
+        // Module.setStatus('Exception thrown, see JavaScript console');
+        //Module.setStatus = function(text) {
+        if (text) console.error('[post-exception status] ' + text);
+        //};
+    };
+
+    async function compile(){
+        const cppValue = document.getElementById("cpp").value;
+
+        console.log("Compiling C++ code...\n");
+        try {
+            await emception.fileSystem.writeFile("/working/main.cpp", cppValue);
+            const cmd = `em++ -O2 -fexceptions -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 -sEXPORT_NAME='CppAreaModule' main.cpp -o main.js`;
+            onprocessstart(`/emscripten/${cmd}`.split(/\s+/g));
+            console.log(`$ ${cmd}\n\n`);
+            const result = await emception.run(cmd);
+            if (result.returncode == 0) {
+                console.log("Emception compilation finished");
+                const content = new TextDecoder().decode(await emception.fileSystem.readFile("/working/main.js"));
+                eval(content);
+                console.log("Execution finished");
+            } else {
+                console.log(`Emception compilation failed`);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            // add your finally code here
+        }
+    }
+
+    document.getElementById("compile").addEventListener("click", async function() {
+        await preCompile();
+    });
+</script>
+
+
+</body></html>

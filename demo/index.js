@@ -169,7 +169,7 @@ async function main() {
             preview(previewTemplate("", "", "Something went wrong, please file a bug report"));
             console.error(err);
         } finally {
-            status.textContent = "Iddle";
+            status.textContent = "Idle";
             statusElements.splice(0, statusElements.length);
             compile.textContent = "Compile!";
             compile.disabled = false;

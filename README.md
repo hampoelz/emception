@@ -1,6 +1,44 @@
 # Emception
+
+Emception is a way to use CLang on the browser. This is a fork of the original work from https://github.com/jprendes/emception .
+
+## Work in progress
+
+This is a work in progress and it's not ready for production.
+
+## How to use the pre-built distribution
+
+Add the npm contents folder to your project and import the index.js file. (rename it at your will).
+
+See [index.html](npm/index.html) for a complete example.
+
+```js
+var emception = new Emception.default();
+// this should be awaited, otherwise compile function will fail
+await emception.init();
+async function compile(cppValue){
+    try {
+        await emception.fileSystem.writeFile("/working/main.cpp", cppValue);
+        const cmd = `em++ -O2 -fexceptions -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 -sEXPORT_NAME='CppAreaModule' main.cpp -o main.js`;
+        const result = await emception.run(cmd);
+        if (result.returncode === 0) {
+            console.log("Emception compilation finished");
+            const content = new TextDecoder().decode(await emception.fileSystem.readFile("/working/main.js"));
+            eval(content);
+            console.log("Execution finished");
+        } else {
+            console.log(`Emception compilation failed`);
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {}
+};
+```
+
+## Details
+
 Compile C/C++ code with [Emscripten](https://emscripten.org/) in the browser.
-You can see it in action in the [live demo](https://jprendes.github.io/emception/).
+You can see it in action in the [live demo](https://infinibrains.github.io/emception/).
 
 # Build
 To build Emception, simply clone the repo, and run `./build-with-docker.sh`. I've only built it on Linux, but you should be able to build it from anywhere you can run Docker. Bear in mind that the build will take a long while (specially cloning/building llvm), so go get a a cup of coffee.
