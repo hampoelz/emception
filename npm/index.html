@@ -19,47 +19,72 @@ int main(){
   return 0;
 }
 </textarea>
-<textarea id="output" style="width: 100%; height: 100px;"></textarea>
-<textarea id="stdin" style="width: 30%; height: 100px; display: inline-block; padding: 1%"></textarea>
-<textarea id="stdout" style="width: 30%; height: 100px; display: inline-block; padding: 1% "></textarea>
-<textarea id="expected" style="width: 30%; height: 100px; display: inline-block; padding: 1% "></textarea>
+<textarea id="stdout" style="width: 100%; height: 100px;"> </textarea>
+<textarea id="stdin" style="width: 47%; height: 100px; display: inline-block; padding: 1%">input test</textarea>
+<textarea id="expected" style="width: 47%; height: 100px; display: inline-block; padding: 1% "> </textarea>
 
 <script>
     // intercept stdin
     window.prompt = function() {
       return document.getElementById("stdin").value;
     }
+    
+    var stdoutElement = document.getElementById("stdout");
+    var stdinElement = document.getElementById("stdin");
+    var expectedElement = document.getElementById("expected");
+    var cppElement = document.getElementById("cpp");
 
-    // todo: intercept console.log and console.error
-
-    // todo: prejs not working yet
+    // prejs
+    // todo: improve and make it not search for the element every time
     const prejs = `
-    var Module = {
-      stdin: function() {
-        return document.getElementById("stdin").value;
-      },
-      stdout: function(str) {
-        return document.getElementById("stdout").value += str + "\\n";
-      },
-      stderr: function(str) {
-        return document.getElementById("stdout").value += str + "\\n";
-      },
-    };`;
+var Module = {
+    print: (function() {
+        var element = stdoutElement;
+        if (element) element.value = ''; // clear browser cache
+        return function(text) {
+            if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+            // todo: do replacements needed
+            console.log(text);
+            if (element) {
+                element.value += text + "";
+                element.scrollTop = element.scrollHeight; // focus on bottom
+            }
+        };
+    })(),
+    printErr: function(text) {
+        if (arguments.length > 1) text = Array.prototype.slice.call(arguments).join(' ');
+        if (0) { // XXX disabled for safety typeof dump == 'function') {
+            dump(text + '\\n'); // fast, straight to the real console
+        } else {
+            console.error(text);
+        }
+
+        var element = stdoutElement;
+        if (element) {
+            element.value += text + "";
+            element.scrollTop = element.scrollHeight; // focus on bottom
+        }
+    }
+};
+    `;
+
     const onprocessstart = (argv) => {
         console.log("onprocessstart", argv);
-        // document.getElementById("output").value += argv + "\n";
+        // stdoutElement.value += '# ' + argv.join(' ') + "\n";
     };
     const onprocessend = () => {
         console.log("onprocessend");
-        // document.getElementById("output").value += "onprocessend" + "\n";
+        // document.getElementById("stdout").value += "onprocessend" + "\n";
     };
     const onstdout = (str) => {
         console.log(str);
-        document.getElementById("output").value += str + "\n";
+        stdoutElement.value += str + "\n";
+        stdoutElement.scrollTop = stdoutElement.scrollHeight; // focus on bottom
     };
     const onstderr = (str) =>{
         console.error(str);
-        document.getElementById("output").value += str + "\n";
+        stdoutElement.value += str + "\n";
+        stdoutElement.scrollTop = stdoutElement.scrollHeight; // focus on bottom
     };
 
     const EmceptionState = {
@@ -74,24 +99,24 @@ int main(){
 
     // todo: bug: this state machine is not running for the second time
     async function preCompile(){
-        console.log("preCompile", loadingState);
+        onstdout("preCompile: " + loadingState);
         switch (loadingState) {
             case EmceptionState.MainNotLoaded:
                 loadingState = EmceptionState.MainLoading;
                 var script = document.createElement('script');
                 script.src = 'main.js';
                 script.onload = ()=>{
-                    console.log("Main script loaded");
+                    onstdout("main.js loaded");
                     loadingState = EmceptionState.MainLoaded;
                     preCompile();
                 }
                 document.head.appendChild(script);
                 return false;
             case EmceptionState.MainLoading:
-                console.log("Main script is still loading. Please wait.");
+                onstdout("Main script is still loading. Please wait.");
                 return false
             case EmceptionState.MainLoaded:
-                console.log("initializing Emception...");
+                onstdout("initializing Emception...");
                 loadingState = EmceptionState.EmceptionLoading;
                 emception = new Emception.default();
                 emception.onstdout = onstdout;
@@ -100,11 +125,11 @@ int main(){
                 emception.onprocessend = onprocessend;
                 await emception.init();
                 loadingState = EmceptionState.EmceptionLoaded;
-                console.log("Emception initialized");
+                onstdout("Emception initialized");
                 preCompile();
                 return false;
             case EmceptionState.EmceptionLoading:
-                console.log("Emception is still loading. Please wait.");
+                onstdout("Emception is still loading. Please wait.");
                 return false;
             case EmceptionState.EmceptionLoaded:
                 await compile();
@@ -121,23 +146,24 @@ int main(){
     };
 
     async function compile(){
-        document.getElementById("output").value = "";
-        const cppValue = document.getElementById("cpp").value;
+        stdoutElement.value = "";
+        const cppValue = cppElement.value;
 
         console.log("Compiling C++ code...\n");
         try {
             await emception.fileSystem.writeFile("/working/main.cpp", cppValue);
-            // await emception.fileSystem.writeFile("/working/pre.js", prejs);
+            await emception.fileSystem.writeFile("/working/pre.js", prejs);
             // todo: add prejs to emscripten command --pre-js pre.js
-            const cmd = `em++ -O2 -fexceptions -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 main.cpp -o main.js`;
+            const cmd = `em++ -O2 -fexceptions --pre-js pre.js -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 main.cpp -o main.js`;
             onprocessstart(`/emscripten/${cmd}`.split(/\s+/g));
-            console.log(`$ ${cmd}\n\n`);
+            onstdout(`# ${cmd}`);
+            // wait 100ms
+            await new Promise(resolve => setTimeout(resolve, 100));
             const result = await emception.run(cmd);
             if (result.returncode == 0) {
-                console.log("Emception compilation finished");
                 const content = new TextDecoder().decode(await emception.fileSystem.readFile("/working/main.js"));
+                onstdout(`# node ./main.js`);
                 eval(content);
-                console.log("Execution finished");
             } else {
                 console.log(`Emception compilation failed`);
             }
