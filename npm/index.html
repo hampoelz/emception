@@ -1,4 +1,5 @@
-<!doctype html><html><head><meta charset="utf-8"><title>Emception</title><meta name="viewport" content="width=device-width,initial-scale=1">
+<!doctype html><html>
+<head><meta charset="utf-8"><title>Emception</title><meta name="viewport" content="width=device-width,initial-scale=1">
 </head>
 <body>
 
@@ -8,7 +9,7 @@
 <p>It is a work in progress and not ready for production use.</p>
 <p>Try it out by entering some C++ code below and clicking the "Compile" button.</p>
 <button id="compile">Compile</button>
-<textarea id="cpp" style="width: 100%; height: 200px;">
+<textarea id="source" style="width: 100%; height: 200px;">
 #include<iostream>
 #include<string>
 using namespace std;
@@ -20,8 +21,8 @@ int main(){
 }
 </textarea>
 <textarea id="stdout" style="width: 100%; height: 100px;"> </textarea>
-<textarea id="stdin" style="width: 47%; height: 100px; display: inline-block; padding: 1%">input test</textarea>
-<textarea id="expected" style="width: 47%; height: 100px; display: inline-block; padding: 1% "> </textarea>
+<textarea id="stdin" style="width: 47%; height: 100px; display: inline-block; padding: 1%">username</textarea>
+<textarea id="expected" style="width: 47%; height: 100px; display: inline-block; padding: 1% ">Hello username!</textarea>
 
 <script>
     // intercept stdin
@@ -32,7 +33,7 @@ int main(){
     var stdoutElement = document.getElementById("stdout");
     var stdinElement = document.getElementById("stdin");
     var expectedElement = document.getElementById("expected");
-    var cppElement = document.getElementById("cpp");
+    var sourceElement = document.getElementById("source");
 
     // prejs
     // todo: improve and make it not search for the element every time
@@ -84,7 +85,7 @@ var Module = {
     const onstderr = (str) =>{
         console.error(str);
         stdoutElement.value += str + "\n";
-        stdoutElement.scrollTop = stdoutElement.scrollHeight; // focus on bottom
+        // stdoutElement.scrollTop = stdoutElement.scrollHeight; // focus on bottom
     };
 
     const EmceptionState = {
@@ -99,7 +100,6 @@ var Module = {
 
     // todo: bug: this state machine is not running for the second time
     async function preCompile(){
-        onstdout("preCompile: " + loadingState);
         switch (loadingState) {
             case EmceptionState.MainNotLoaded:
                 loadingState = EmceptionState.MainLoading;
@@ -147,11 +147,11 @@ var Module = {
 
     async function compile(){
         stdoutElement.value = "";
-        const cppValue = cppElement.value;
+        const sourceValue = sourceElement.value;
 
         console.log("Compiling C++ code...\n");
         try {
-            await emception.fileSystem.writeFile("/working/main.cpp", cppValue);
+            await emception.fileSystem.writeFile("/working/main.cpp", sourceValue);
             await emception.fileSystem.writeFile("/working/pre.js", prejs);
             // todo: add prejs to emscripten command --pre-js pre.js
             const cmd = `em++ -O2 -fexceptions --pre-js pre.js -sEXIT_RUNTIME=1 -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 main.cpp -o main.js`;
@@ -163,7 +163,20 @@ var Module = {
             if (result.returncode == 0) {
                 const content = new TextDecoder().decode(await emception.fileSystem.readFile("/working/main.js"));
                 onstdout(`# node ./main.js`);
+                await new Promise(resolve => setTimeout(resolve, 100));
                 eval(content);
+                //wait 100ms
+                await new Promise(resolve => setTimeout(resolve, 100));
+                // compare stdout with expected
+                const stdout = stdoutElement.value;
+                const expected = expectedElement.value;
+
+                console.log(`stdout: ${stdout}`);
+                console.log(`expected: ${expected}`);
+                if (stdout.replace(/\s/g, '') === expected.replace(/\s/g, ''))
+                    console.log(`Test Passed`);
+                else
+                    console.error(`Test failed`);
             } else {
                 console.log(`Emception compilation failed`);
             }
