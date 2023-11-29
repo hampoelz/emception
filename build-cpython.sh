@@ -68,6 +68,16 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
 
     pushd $CPYTHON_BUILD/
 
+    # for compatibility reasons check if filesystem is case sensitive. if it is case sensitive set PYTHONEXE to python, if not set it to python.exe
+    touch filename fileName
+    if [ $(du -a file* | wc -l | xargs) -eq 2 ]; then
+        PYTHONEXE=python
+    else
+        PYTHONEXE=python.exe
+    fi
+    rm -rf filename fileName
+    echo $PYTHONEXE
+
     # Build cpython with asyncify support.
     # Disable sqlite3, zlib and bzip2, which cpython enables by default
     CONFIG_SITE=$CPYTHON_SRC/Tools/wasm/config.site-wasm32-emscripten \
@@ -87,7 +97,7 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
         --with-suffix=".mjs" \
         --disable-wasm-preload \
         --enable-wasm-js-module \
-        --with-build-python=$CPYTHON_NATIVE/python \
+        --with-build-python=$CPYTHON_NATIVE/$PYTHONEXE \
 
     emmake make -j$(nproc)
 

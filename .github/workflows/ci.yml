@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - uses: actions/checkout@v3
 #      - name: Log in to registry
@@ -57,7 +57,7 @@ jobs:
         with:
           name: dist
           path: ./build.zip
-          retention-days: 7
+          retention-days: 1
 
 
 #  release:
