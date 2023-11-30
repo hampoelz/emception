@@ -110,4 +110,4 @@ if [ ! -d $LLVM_BUILD/ ]; then
 fi
 # llvm is memory hungry, so only use 2 threads instead of the default 4
 # todo: detect memory and use more threads if we have enough
-cmake --build $LLVM_BUILD/ --parallel 2 -- llvm-box
+cmake --build $LLVM_BUILD/ --parallel -- llvm-box
