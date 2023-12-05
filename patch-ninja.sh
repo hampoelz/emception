@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 NINJA_FILE=""
 BOX=""

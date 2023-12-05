@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 if [ "$(uname)" == "Darwin" ]; then
     alias nproc="sysctl -n hw.ncpu"

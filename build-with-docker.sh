@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 SRC=$(dirname $0)
 SRC=$(realpath "$SRC")
@@ -19,3 +20,5 @@ docker run \
     -v $(pwd)/build/emsdk_cache:/emsdk/upstream/emscripten/cache \
     emception_build \
     bash -c "cd $(pwd) && ./build.sh"
+
+./build-demo.sh

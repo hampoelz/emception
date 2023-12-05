@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 SRC=$(dirname $0)
 
