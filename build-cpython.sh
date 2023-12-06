@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 if [ "$(uname)" == "Darwin" ]; then
     alias nproc="sysctl -n hw.ncpu"
 fi
@@ -29,8 +31,9 @@ CPYTHON_NATIVE=$BUILD/cpython-native
 # If we don't have a copy of cpython, make one
 if [ ! -d $CPYTHON_SRC/ ]; then
     git clone --depth 1 -b emception https://github.com/InfiniBrains/cpython.git "$CPYTHON_SRC/"
+fi
 
-    pushd $CPYTHON_SRC/
+pushd $CPYTHON_SRC/
 
 #    # This is the last tested commit of cpython.
 #    # Feel free to try with a newer version
@@ -38,9 +41,9 @@ if [ ! -d $CPYTHON_SRC/ ]; then
 #    git fetch origin $COMMIT
 #    git reset --hard $COMMIT
 
-    popd
-fi
+popd
 
+# todo: create a way to reconfigure if the folder exists
 if [ ! -d $CPYTHON_NATIVE/ ]; then
     # Rever the cpython patch in case this runs after the wasm version reconfigures it.
     pushd $CPYTHON_SRC/
@@ -58,6 +61,7 @@ if [ ! -d $CPYTHON_NATIVE/ ]; then
     popd
 fi
 
+# todo: create a way to reconfigure if the folder exists
 if [ ! -d $CPYTHON_BUILD/ ]; then
     # Patch cpython to add a module to evaluate JS code.
     pushd $CPYTHON_SRC/

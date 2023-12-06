@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 SRC=$(dirname $0)
 BUILD="$1"
 

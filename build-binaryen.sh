@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 SRC=$(dirname $0)
 
 BUILD="$1"
@@ -20,10 +22,10 @@ BINARYEN_BUILD=$BUILD/binaryen
 
 # If we don't have a copy of binaryen, make one
 if [ ! -d $BINARYEN_SRC/ ]; then
-    # in order to get git describe correctly, we need to not use --depth 1
-    git clone https://github.com/WebAssembly/binaryen.git "$BINARYEN_SRC/"
+    git clone --depth 1 https://github.com/WebAssembly/binaryen.git "$BINARYEN_SRC/"
+fi
 
-    pushd $BINARYEN_SRC/
+pushd $BINARYEN_SRC/
 
     # This is the last tested commit of binaryen.
     # Feel free to try with a newer version
@@ -34,8 +36,9 @@ if [ ! -d $BINARYEN_SRC/ ]; then
     git submodule init
     git submodule update
 
-    popd
-fi
+popd
+
+# todo: create a way to reconfigure if the folder exists
 
 if [ ! -d $BINARYEN_BUILD/ ]; then
     LDFLAGS="\

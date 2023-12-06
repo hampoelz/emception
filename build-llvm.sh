@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 SRC=$(dirname $0)
 
 BUILD="$1"
@@ -22,8 +24,9 @@ LLVM_NATIVE=$BUILD/llvm-native
 # If we don't have a copy of LLVM, make one
 if [ ! -d $LLVM_SRC/ ]; then
     git clone --depth 1 https://github.com/llvm/llvm-project.git "$LLVM_SRC/"
+fi
 
-    pushd $LLVM_SRC/
+pushd $LLVM_SRC/
     
     # This is the last tested commit of llvm-project.
     # Feel free to try with a newer version
@@ -35,9 +38,9 @@ if [ ! -d $LLVM_SRC/ ]; then
     # Since this complicates matters quite a lot for us, just disable that.
     git apply $SRC/patches/llvm-project.patch
 
-    popd
-fi
+popd
 
+# todo: create a way to reconfigure if the folder exists
 # Cross compiling llvm needs a native build of "llvm-tblgen" and "clang-tblgen"
 if [ ! -d $LLVM_NATIVE/ ]; then
     echo "Configuring LLVM_NATIVE"
@@ -50,6 +53,7 @@ if [ ! -d $LLVM_NATIVE/ ]; then
 fi
 cmake --build $LLVM_NATIVE/ -- llvm-tblgen clang-tblgen
 
+# todo: create a way to reconfigure if the folder exists
 if [ ! -d $LLVM_BUILD/ ]; then
     echo "Configuring LLVM_BUILD"
     CXXFLAGS="-Dwait4=__syscall_wait4" \

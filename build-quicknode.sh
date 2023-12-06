@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 SRC=$(dirname $0)
 
 BUILD="$1"
@@ -18,6 +20,7 @@ SRC=$(realpath "$SRC")
 BUILD=$(realpath "$BUILD")
 QUICKNODE_BUILD=$BUILD/quicknode
 
+# todo: create a way to reconfigure if the folder exists
 if [ ! -d $QUICKNODE_BUILD/ ]; then
     CXXFLAGS="
         -fexceptions \

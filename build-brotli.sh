@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export $(cat .env | xargs)
+
 SRC=$(dirname $0)
 
 BUILD="$1"
@@ -21,8 +23,9 @@ BROTLI_BUILD=$BUILD/brotli
 # If we don't have a copy of binaryen, make one
 if [ ! -d $BROTLI_SRC/ ]; then
     git clone --depth 1 https://github.com/google/brotli.git "$BROTLI_SRC/"
+fi
 
-    pushd $BROTLI_SRC/
+pushd $BROTLI_SRC/
     
     # This is the last tested commit of brotli.
     # Feel free to try with a newer version
@@ -30,9 +33,9 @@ if [ ! -d $BROTLI_SRC/ ]; then
     git fetch origin $COMMIT
     git reset --hard $COMMIT
 
-    popd
-fi
+popd
 
+# todo: create a way to reconfigure if the folder exists
 if [ ! -d $BROTLI_BUILD/ ]; then
     CFLAGS="-flto" \
     LDFLAGS="\
