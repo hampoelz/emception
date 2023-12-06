@@ -7,7 +7,7 @@ include(FetchContent)
 FetchContent_Declare(
   upstream_quickjspp
   GIT_REPOSITORY https://github.com/ftk/quickjspp.git
-  GIT_TAG        9cee4b4d27271d54b95f6f42bfdc534ebeaaeb72
+  GIT_TAG        #ENV{QUICKJSPP_COMMIT}
 )
 FetchContent_MakeAvailable(upstream_quickjspp)
 FetchContent_GetProperties(upstream_quickjspp)

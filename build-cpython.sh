@@ -30,25 +30,28 @@ CPYTHON_NATIVE=$BUILD/cpython-native
 
 # If we don't have a copy of cpython, make one
 if [ ! -d $CPYTHON_SRC/ ]; then
-    git clone --depth 1 -b emception https://github.com/InfiniBrains/cpython.git "$CPYTHON_SRC/"
+    git clone https://github.com/python/cpython.git "$CPYTHON_SRC/"
+
+    pushd $CPYTHON_SRC/
+    echo "Checking out $CPYTHON_COMMIT"
+    git fetch origin "$CPYTHON_COMMIT"
+    echo "Resetting to $CPYTHON_COMMIT"
+    git reset --hard "$CPYTHON_COMMIT"
+    git clean -f -d
+    echo "Applying patch"
+    git apply $SRC/patches/cpython.patch
+    popd
 fi
-
-pushd $CPYTHON_SRC/
-
-#    # This is the last tested commit of cpython.
-#    # Feel free to try with a newer version
-#    COMMIT=b8a9f13abb61bd91a368e2d3f339de736863050f
-#    git fetch origin $COMMIT
-#    git reset --hard $COMMIT
-
-popd
 
 # todo: create a way to reconfigure if the folder exists
 if [ ! -d $CPYTHON_NATIVE/ ]; then
     # Rever the cpython patch in case this runs after the wasm version reconfigures it.
     pushd $CPYTHON_SRC/
-#    git apply -R $SRC/patches/cpython.patch
-    autoreconf -i
+        git fetch origin $CPYTHON_COMMIT
+        git reset --hard $CPYTHON_COMMIT
+        git clean -f -d
+        git apply $SRC/patches/cpython.patch
+        autoreconf -i
     popd
 
     mkdir -p $CPYTHON_NATIVE/
@@ -65,8 +68,11 @@ fi
 if [ ! -d $CPYTHON_BUILD/ ]; then
     # Patch cpython to add a module to evaluate JS code.
     pushd $CPYTHON_SRC/
-#    git apply $SRC/patches/cpython.patch
-    autoreconf -i
+        git fetch origin $CPYTHON_COMMIT
+        git reset --hard $CPYTHON_COMMIT
+        git clean -f -d
+        git apply $SRC/patches/cpython.patch
+        autoreconf -i
     popd
 
     mkdir -p $CPYTHON_BUILD/

@@ -23,20 +23,15 @@ BINARYEN_BUILD=$BUILD/binaryen
 # If we don't have a copy of binaryen, make one
 if [ ! -d $BINARYEN_SRC/ ]; then
     git clone --depth 1 https://github.com/WebAssembly/binaryen.git "$BINARYEN_SRC/"
-fi
 
-pushd $BINARYEN_SRC/
-
-    # This is the last tested commit of binaryen.
-    # Feel free to try with a newer version
-    COMMIT=8ab8e40d15a4d9f28ced76d28232f9e791f161d3
-    git fetch origin $COMMIT
-    git reset --hard $COMMIT
+    pushd $BINARYEN_SRC/
+    git fetch origin $BINARYEN_COMMIT
+    git reset --hard $BINARYEN_COMMIT
 
     git submodule init
     git submodule update
-
-popd
+    popd
+fi
 
 # todo: create a way to reconfigure if the folder exists
 

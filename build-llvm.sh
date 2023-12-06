@@ -21,24 +21,20 @@ BUILD=$(realpath "$BUILD")
 LLVM_BUILD=$BUILD/llvm
 LLVM_NATIVE=$BUILD/llvm-native
 
+# todo check every run if the current llvm commit is the same as the one in the .env file and the patch is applied
 # If we don't have a copy of LLVM, make one
 if [ ! -d $LLVM_SRC/ ]; then
     git clone --depth 1 https://github.com/llvm/llvm-project.git "$LLVM_SRC/"
-fi
 
-pushd $LLVM_SRC/
-    
-    # This is the last tested commit of llvm-project.
-    # Feel free to try with a newer version
-    COMMIT=d5a963ab8b40fcf7a99acd834e5f10a1a30cc2e5
-    git fetch origin $COMMIT
-    git reset --hard $COMMIT
+    pushd $LLVM_SRC/
+    git fetch origin $LLVM_COMMIT
+    git reset --hard $LLVM_COMMIT
 
     # The clang driver will sometimes spawn a new process to avoid memory leaks.
     # Since this complicates matters quite a lot for us, just disable that.
     git apply $SRC/patches/llvm-project.patch
-
-popd
+    popd
+fi
 
 # todo: create a way to reconfigure if the folder exists
 # Cross compiling llvm needs a native build of "llvm-tblgen" and "clang-tblgen"
@@ -113,6 +109,7 @@ if [ ! -d $LLVM_BUILD/ ]; then
     sed -E 's/ninja_required_version1\.5/ninja_required_version = 1.5/g' $LLVM_BUILD/build.ninja > /tmp/build.ninja
     mv /tmp/build.ninja $LLVM_BUILD/build.ninja
 fi
+
 # llvm is memory hungry, so only use 2 threads instead of the default 4
 # todo: detect memory and use more threads if we have enough
 cmake --build $LLVM_BUILD/ --parallel -- llvm-box

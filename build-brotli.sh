@@ -23,17 +23,12 @@ BROTLI_BUILD=$BUILD/brotli
 # If we don't have a copy of binaryen, make one
 if [ ! -d $BROTLI_SRC/ ]; then
     git clone --depth 1 https://github.com/google/brotli.git "$BROTLI_SRC/"
+
+    pushd $BROTLI_SRC/
+    git fetch origin $BROTLI_COMMIT
+    git reset --hard $BROTLI_COMMIT
+    popd
 fi
-
-pushd $BROTLI_SRC/
-    
-    # This is the last tested commit of brotli.
-    # Feel free to try with a newer version
-    COMMIT=62662f87cdd96deda90ac817de94e3c4af75226a
-    git fetch origin $COMMIT
-    git reset --hard $COMMIT
-
-popd
 
 # todo: create a way to reconfigure if the folder exists
 if [ ! -d $BROTLI_BUILD/ ]; then
