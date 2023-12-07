@@ -1,6 +1,6 @@
 # build artifacts
-build/
-upstream/
+build**/
+upstream**/
 
 # build cache files
 **/*.idx
@@ -15,3 +15,5 @@ upstream/
 .DS_Store
 
 npm/dist/
+
+webapp/package-lock.json
