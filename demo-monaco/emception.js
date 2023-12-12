@@ -60,6 +60,7 @@ class Emception {
 
         fileSystem.mkdirTree("/lazy");
         for (const [name, url] of Object.entries(packs)) {
+            console.log("Preloading...", name, url);
             fileSystem.cachedLazyFolder(`/lazy/${name}`, url, 0o777, `/lazy/${name}`);
         }
 

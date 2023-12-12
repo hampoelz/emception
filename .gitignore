@@ -1,12 +1,10 @@
 # build artifacts
 build**/
 upstream**/
+**/dist/
 
 # build cache files
 **/*.idx
-
-# demo
-**/node_modules
 
 # dev tools
 .idea/
@@ -14,6 +12,7 @@ upstream**/
 # OS settings
 .DS_Store
 
-npm/dist/
+# node
+**/package-lock.json
+**/node_modules
 
-webapp/package-lock.json
