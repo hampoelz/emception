@@ -9,5 +9,3 @@ pushd $SRC/demo
   npm install
   npm run build
 popd
-
-

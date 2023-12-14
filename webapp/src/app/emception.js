@@ -5,8 +5,6 @@ import BinaryenBoxProcess from "emception/BinaryenBoxProcess.mjs";
 import Python3Process from "emception/Python3Process.mjs";
 import NodeProcess from "emception/QuickNodeProcess.mjs";
 
-import packs from "emception/packs.mjs";
-
 const tools_info = {
     "/usr/bin/clang":                    "llvm-box",
     "/usr/bin/clang++":                  "llvm-box",
@@ -60,7 +58,6 @@ class Emception {
 
         fileSystem.mkdirTree("/lazy");
         for (const [name, url] of Object.entries(packs)) {
-            console.log("Preloading...", name, url);
             fileSystem.cachedLazyFolder(`/lazy/${name}`, url, 0o777, `/lazy/${name}`);
         }
 

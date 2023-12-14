@@ -38,5 +38,5 @@ echo "#Building Emception:"
 $SRC/build-emception.sh "$BUILD"
 
 # todo: make it work on only one shot!
-#echo "#Building Demo"
-#$SRC/build-demo.sh "$BUILD"
+echo "#Building Demo"
+$SRC/build-demo.sh "$BUILD"

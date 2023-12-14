@@ -24,4 +24,4 @@ docker run \
     emception_build \
     bash -c "cd $(pwd) && ./build.sh"
 
-./build-demo.sh
+#./build-demo.sh

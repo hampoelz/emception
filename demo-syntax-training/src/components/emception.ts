@@ -51,7 +51,7 @@ const preloads = [
 ];
 
 class Emception {
-    fileSystem = null;
+    fileSystem: FileSystem = null;
     tools = {};
 
     async init() {
@@ -83,7 +83,7 @@ class Emception {
 
         const processConfig = {
             FS: fileSystem.FS,
-            onrunprocess: (...args) => this._run_process(...args),
+            onrunprocess: (...args) => this._run_process(args),
         };
 
         const tools = {
@@ -103,10 +103,10 @@ class Emception {
         }
     }
 
-    onprocessstart = () => {};
-    onprocessend = () => {};
-    onstdout = () => {};
-    onstderr = () => {};
+    onprocessstart = (str) => {console.log("onprocessstart", str)};
+    onprocessend = (str) => {console.log("onprocessend", str)};
+    onstdout = (str) => {console.log(str)};
+    onstderr = (str) => {console.error(str)};
 
     run(...args) {
         if (this.fileSystem.exists("/emscripten/cache/cache.lock")) {
@@ -117,8 +117,8 @@ class Emception {
             `/emscripten/${args[0]}.py`,
             ...args.slice(1)
         ], {
-            print: (...args) => this.onstdout(...args),
-            printErr: (...args) => this.onstderr(...args),
+            print: (...args) => this.onstdout(args),
+            printErr: (...args) => this.onstderr(args),
             cwd: "/working",
             path: ["/emscripten"],
         });
@@ -131,7 +131,7 @@ class Emception {
         return result;
     }
 
-    _run_process_impl(argv, opts = {}) {
+    _run_process_impl(argv, opts:any = {}) {
         const emscripten_script = argv[0].match(/^((\/lazy)?\/emscripten\/.+?)(?:\.py)?$/)?.[1]
         if (emscripten_script && this.fileSystem.exists(`${emscripten_script}.py`)) {
             argv = [
