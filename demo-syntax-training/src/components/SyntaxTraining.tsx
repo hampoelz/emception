@@ -1,9 +1,11 @@
-import React, {useRef} from "react";
+import React, {createRef, useEffect, useRef} from "react";
 import {App, Button, Collapse, Flex, Space, notification, Layout, Menu, Breadcrumb, Row, Col} from "antd";
 import {CopyOutlined, PlayCircleFilled, UndoOutlined} from "@ant-design/icons";
-import Editor from "@monaco-editor/react";
+import { Editor, Monaco } from "@monaco-editor/react";
+import {editor} from "monaco-editor";
 const { Header, Content, Footer } = Layout;
 
+import Emception from "./emception";
 
 const containerStyle: React.CSSProperties = {
     width: '100%',
@@ -16,7 +18,6 @@ const style: React.CSSProperties = {
     width: '100%',
 };
 
-
 interface SyntaxTrainingPageProps {
     content?: string;
     initialValue?: string;
@@ -27,19 +28,55 @@ interface SyntaxTrainingPageProps {
 
 const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
     content = "Syntax Training Title",
-                                                                   initialValue = "// code here",
+                                                                   initialValue = "// code goes here",
                                                                    theme = "vs-dark",
                                                                    language = "cpp",
                                                                    height = "20vh"}) => {
 
     const [api, contextHolder] = notification.useNotification();
 
+    let emception: Emception;
+    async function loadEmception(): Promise<any> {
+        showNotification("Loading emception...");
+        emception = new Emception();
+        await emception.init();
+        showNotification("Emception loaded");
+    }
+
+    useEffect(() => {
+        loadEmception()
+    }, []);
+
+    // useEffect(() => {
+    //     console.log('Component is mounted');
+    //     loadEmception();
+    // }, []);
+
+    // var emceptionLoadingState: "notLoaded" | "loading" | "loaded" = "notLoaded";
+
+    // async function loadEmception(): Promise<any> {
+    //     if (emceptionLoadingState === "notLoaded") {
+    //         showNotification("Loading emception...");
+    //         emceptionLoadingState = "loading";
+    //         (window as any).emception = await import("./emception");
+    //         showNotification("Emception loaded");
+    //         emceptionLoadingState = "loaded";
+    //         console.log((window as any).emception);
+    //     }
+    //     return (window as any).emception;
+    // }
+
+    let editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
+    let monacoRef = useRef(null);
+    let outputRef = React.createRef<string>();
 
     function handleEditorChange(value: any, event: any) {
         // here is the current value
+        console.log(value);
+        console.log('event', event);
     }
 
-    function handleEditorDidMount(editor: any, monaco: any) {
+    function handleEditorDidMount(editor: editor.IStandaloneCodeEditor, monaco: any) {
         editorRef.current = editor;
         monacoRef.current = monaco;
         console.log('onMount: the editor instance:', editor);
@@ -56,11 +93,9 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
         // markers.forEach(marker => console.log('onValidate:', marker.message));
     }
 
-    const editorRef = useRef(null);
-    const monacoRef = useRef(null);
-    const outputRef = React.createRef<string>();
 
     const onRunClick= async () => {
+        console.log('onRunClick: the editor instance:', editorRef.current?.getValue());
         // get the instance of monaco editor from the CodeBlock component
     }
 
@@ -76,6 +111,14 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
         label: `nav ${index + 1}`,
     }));
 
+    const resetCode = () => {
+        editorRef.current?.setValue(initialValue);
+        showNotification('Code reset');
+    }
+
+    const copyCode = async () => {
+        await navigator.clipboard.writeText(editorRef.current?.getValue() || '')
+    }
 
     return (
         <>
@@ -107,7 +150,7 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
                             <p>ouintdaountaoeuntaoe aonhtd aoeunt adoeunthdao naontd aoncdao clado rclao lao drlcao
                                 crldao lrcado ntaod naotd rcaeo daoecgd aonthd aeonthd cgre gaoedahnotd aoenhtd oaendthd
                                 aonthdao ntado nhtadeocraoe gcraeodraeodreoa aogdd aehnot ao</p>
-                            <Editor
+                              <Editor
                                 height={height}
                                 defaultLanguage={language}
                                 theme={theme}
@@ -116,16 +159,17 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
                                 onMount={handleEditorDidMount}
                                 beforeMount={handleEditorWillMount}
                                 onValidate={handleEditorValidation}
-                            />
+                                options={{automaticLayout: true, wordWrap: 'on'}}
+                              />
                             <Row justify="space-between">
                                 <Col>
                                     <Space direction="horizontal">
-                                        <Button type="primary" icon={<PlayCircleFilled/>}>Run</Button>
+                                        <Button type="primary" onClick={onRunClick} icon={<PlayCircleFilled/>}>Run</Button>
                                     </Space>
                                 </Col>
                                 <Col>
-                                    <Button type="default" icon={<UndoOutlined/>}>Reset code</Button>
-                                    <Button type="default" icon={<CopyOutlined/>}>Copy code</Button>
+                                    <Button type="default" icon={<UndoOutlined/>} onClick={resetCode}>Reset code</Button>
+                                    <Button type="default" icon={<CopyOutlined/>} onClick={copyCode}>Copy code</Button>
                                 </Col>
                             </Row>
                         </Space>
@@ -136,7 +180,7 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
                         </div>
                     </div>
                 </Content>
-                <Footer style={{textAlign: 'center'}}>GameGuild ©2023 Created by Alexandre Tolstenko</Footer>
+                <Footer style={{textAlign: 'center'}}>GameGuild ©2023. Created by Alexandre Tolstenko.</Footer>
             </Layout>
         </>
     );
