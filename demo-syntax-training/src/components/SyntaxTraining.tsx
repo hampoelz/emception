@@ -1,3 +1,5 @@
+import {AssignmentBasev1_0_0} from "../assignments/assignment.base.v1.0.0";
+
 const path = require('path');
 import { CopyOutlined, PlayCircleFilled, UndoOutlined } from "@ant-design/icons";
 import { Editor } from "@monaco-editor/react";
@@ -7,6 +9,7 @@ import * as Comlink from "comlink";
 import { editor } from "monaco-editor";
 import React, { useEffect, useRef } from "react";
 import Emception from "./emception";
+import { HelloWorldCPP } from "../assignments/intro-cpp/hello-world"
 
 const { Header, Content, Footer } = Layout;
 
@@ -29,16 +32,14 @@ const style: React.CSSProperties = {
 };
 
 interface SyntaxTrainingPageProps {
-  content?: string;
-  initialValue?: string;
+  assignment?: AssignmentBasev1_0_0 | any; // add other versions here
   theme?: string;
   language?: string;
   height?: string;
 }
 
 const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
-                                                                 content = "Syntax Training Title",
-                                                                 initialValue = "// code goes here",
+                                                                 assignment = HelloWorldCPP,
                                                                  theme = "vs-dark",
                                                                  language = "cpp",
                                                                  height = "20vh"
@@ -56,8 +57,6 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
 
     emception = Comlink.wrap(emceptionWorker);
     await emception.init();
-    // emception = new Emception();
-    // await emception.init();
     showNotification("Emception loaded");
   }
 
@@ -130,7 +129,7 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
   }));
 
   const resetCode = () => {
-    editorRef.current?.setValue(initialValue);
+    editorRef.current?.setValue(assignment.initialCode);
     showNotification('Code reset');
   }
 
@@ -165,15 +164,12 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
             } }
           >
             <Space direction="vertical">
-              <p>{ content }</p>
-              <p>ouintdaountaoeuntaoe aonhtd aoeunt adoeunthdao naontd aoncdao clado rclao lao drlcao
-                crldao lrcado ntaod naotd rcaeo daoecgd aonthd aeonthd cgre gaoedahnotd aoenhtd oaendthd
-                aonthdao ntado nhtadeocraoe gcraeodraeodreoa aogdd aehnot ao</p>
+              <p>{ assignment.description }</p>
               <Editor
                 height={ height }
                 defaultLanguage={ language }
                 theme={ theme }
-                defaultValue={ initialValue }
+                defaultValue={ assignment.initialCode }
                 onChange={ handleEditorChange }
                 onMount={ handleEditorDidMount }
                 beforeMount={ handleEditorWillMount }
