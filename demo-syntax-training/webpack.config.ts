@@ -1,7 +1,6 @@
-import path from "path";
-
-import CopyWebpackPlugin from "copy-webpack-plugin";
-import CompressionPlugin from "compression-webpack-plugin";
+const CompressionPlugin = require("compression-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
+const path = require("path");
 
 // todo: type this
 // import { Configuration } from "webpack";
@@ -29,7 +28,18 @@ const config = {
         test: /\.worker\.m?js$/,
         exclude: /monaco-editor/,
         use: ["worker-loader"],
-      }
+      },
+      {
+        test: /\.worker\.ts$/,
+        loader: 'ts-loader' ,
+        // options: {
+        //   publicPath: "/scripts/workers/",
+        // },
+      },
+      // {
+      //   test: /\.worker\.ts$/,
+      //   use: [{ loader: 'worker-loader' }, { loader: 'ts-loader' }],
+      // },
     ],
   },
   resolve: {
@@ -79,4 +89,4 @@ const config = {
   },
 };
 
-export default config;
+module.exports = config;
