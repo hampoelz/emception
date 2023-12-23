@@ -39,11 +39,9 @@ terminal.loadAddon(terminalFitAddon);
 window.editor = editor;
 window.terminal = terminal;
 
-editor.setValue(`#include <iostream>
-
-int main(void) {
-    std::cout << "hello world!\\n";
-    return 0;
+editor.setValue(`import std;
+int main() {
+    std::printf("Hello World"); 
 }
 `);
 
@@ -79,7 +77,7 @@ async function main() {
     `, document.body);
 
     const flags = document.getElementById("flags");
-    flags.value = "-O2 -fexceptions --proxy-to-worker -sEXIT_RUNTIME=1";
+    flags.value = "-O2 -fexceptions --proxy-to-worker -sEXIT_RUNTIME=1 -std=c++2b -fmodules";
     
     window.split = Split({
         onDrag: () => {
