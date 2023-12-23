@@ -3,22 +3,33 @@ import {AssignmentBasev1_0_0} from "../assignments/assignment.base.v1.0.0";
 const path = require('path');
 import { CopyOutlined, PlayCircleFilled, UndoOutlined } from "@ant-design/icons";
 import { Editor } from "@monaco-editor/react";
-import { Breadcrumb, Button, Col, Layout, Menu, notification, Row, Space } from "antd";
+import { Breadcrumb, Button, Col, Layout, Menu, notification, Row, Space, Input } from "antd";
+const { TextArea } = Input;
 
 import * as Comlink from "comlink";
 import { editor } from "monaco-editor";
-import React, { useEffect, useRef } from "react";
+import React, {useEffect, useRef, useState} from "react";
 import Emception from "./emception";
-import { HelloWorldCPP } from "../assignments/intro-cpp/hello-world"
+import { HelloWorldCPP } from "../assignments/intro-cpp/hello-world-cpp";
+import Markdown from 'markdown-to-jsx'
+
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { dark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import {write} from "node:fs";
+
+const CodeBlock = ({ children }: { children: React.ReactElement }) => {
+  const { className, children: code } = children.props;
+
+  const language = className?.replace("lang-", "");
+  return (
+      <SyntaxHighlighter language={language} style={dark}>
+        {code}
+      </SyntaxHighlighter>
+  );
+};
 
 const { Header, Content, Footer } = Layout;
 
-// import EmceptionWorker from "./emception.worker";
-// const emception = Comlink.wrap(new EmceptionWorker());
-
-// const emception = Comlink.wrap(worker);
-// window.emception = emception;
-// window.Comlink = Comlink;
 
 const containerStyle: React.CSSProperties = {
   width: '100%',
@@ -44,48 +55,58 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
                                                                  language = "cpp",
                                                                  height = "20vh"
                                                                }) => {
+    const [cppFlags, setCppFlags] = useState("-O2 -fexceptions --proxy-to-worker -sEXIT_RUNTIME=1 -std=c++2b -fmodules");
 
   const [api, contextHolder] = notification.useNotification();
+  let [consoleOutput, setConsoleOutput] = useState<string>("");
 
   let emception: Emception;
 
+  const writeLineToConsole = (str: string) => {
+    consoleOutput+= str + "\n";
+    console.log(consoleOutput);
+    setConsoleOutput(consoleOutput);
+  }
+
+  const clearConsole = () => {
+    setConsoleOutput("");
+  }
+
+  // todo: fix code styles
+  const CodeBlock = ({ children }: { children: React.ReactElement }) => {
+    const { className, children: code } = children.props;
+
+    const language = className?.replace("lang-", "");
+    return (
+        <SyntaxHighlighter language={language}>
+          {code}
+        </SyntaxHighlighter>
+    );
+  };
+
   async function loadEmception(): Promise<any> {
     showNotification("Loading emception...");
-    // const workerPath = path.join(__dirname, 'emception.worker.ts');
 
+    // todo: is it possible to not refer as url?
     const emceptionWorker = new Worker(new URL('./emception.worker.ts', import.meta.url), { type: 'module' });
 
     emception = Comlink.wrap(emceptionWorker);
+
+    emception.onstdout = Comlink.proxy(writeLineToConsole);
+    emception.onstderr = Comlink.proxy(writeLineToConsole);
+    emception.onprocessstart = Comlink.proxy(onprocessstart);
+    emception.onprocessend = Comlink.proxy(onprocessend);
+
     await emception.init();
-    showNotification("Emception loaded");
+    showNotification("Emception intialized");
   }
 
   useEffect(() => {
-    loadEmception()
+    loadEmception();
   }, []);
-
-  // useEffect(() => {
-  //     console.log('Component is mounted');
-  //     loadEmception();
-  // }, []);
-
-  // var emceptionLoadingState: "notLoaded" | "loading" | "loaded" = "notLoaded";
-
-  // async function loadEmception(): Promise<any> {
-  //     if (emceptionLoadingState === "notLoaded") {
-  //         showNotification("Loading emception...");
-  //         emceptionLoadingState = "loading";
-  //         (window as any).emception = await import("./emception");
-  //         showNotification("Emception loaded");
-  //         emceptionLoadingState = "loaded";
-  //         console.log((window as any).emception);
-  //     }
-  //     return (window as any).emception;
-  // }
 
   let editorRef = useRef<editor.IStandaloneCodeEditor | null>(null)
   let monacoRef = useRef(null);
-  let outputRef = React.createRef<string>();
 
   function handleEditorChange(value: any, event: any) {
     // here is the current value
@@ -110,10 +131,33 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
     // markers.forEach(marker => console.log('onValidate:', marker.message));
   }
 
+  const onprocessstart = (argv) => {
+    writeLineToConsole(`\$ ${argv.join(" ")}`);
+  };
+  const onprocessend = () => {
+    writeLineToConsole(`Process finished`);
+  };
 
   const onRunClick = async () => {
-    console.log('onRunClick: the editor instance:', editorRef.current?.getValue());
-    // get the instance of monaco editor from the CodeBlock component
+    try {
+      clearConsole();
+      const code = editorRef.current?.getValue() || '';
+      await emception.fileSystem.writeFile("/working/main.cpp", code);
+      const cmd = `em++ ${cppFlags} -sSINGLE_FILE=1 -sUSE_CLOSURE_COMPILER=0 /working/main.cpp -o /working/main.js`;
+      writeLineToConsole(`\$ ${cmd}`);
+      const result = await emception.run(cmd);
+      showNotification(JSON.stringify(result));
+      if (result.returncode == 0) {
+        writeLineToConsole("Emception compilation finished");
+        const content = await emception.fileSystem.readFile("/working/main.js", { encoding: "utf8" });
+        writeLineToConsole(content);
+        eval(content);
+      } else {
+        writeLineToConsole(`Emception compilation failed`);
+      }
+    } catch (e) {
+      writeLineToConsole(JSON.stringify(e));
+    }
   }
 
   const showNotification = (message: string) => {
@@ -164,7 +208,9 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
             } }
           >
             <Space direction="vertical">
-              <p>{ assignment.description }</p>
+              <Markdown options={{forceBlock: true, overrides: { pre: { component: CodeBlock } } }}>
+                {assignment.description}
+              </Markdown>
               <Editor
                 height={ height }
                 defaultLanguage={ language }
@@ -187,12 +233,8 @@ const SyntaxTrainingPage: React.FC<SyntaxTrainingPageProps> = ({
                   <Button type="default" icon={ <CopyOutlined/> } onClick={ copyCode }>Copy code</Button>
                 </Col>
               </Row>
+              <TextArea disabled={true} autoSize={{ minRows: 2, maxRows: 6 }} value={consoleOutput}/>
             </Space>
-          </div>
-          <div style={ containerStyle }>
-            <div style={ style }>
-              { outputRef.current }
-            </div>
           </div>
         </Content>
         <Footer style={ { textAlign: 'center' } }>GameGuild ©2023. Created by Alexandre Tolstenko.</Footer>
