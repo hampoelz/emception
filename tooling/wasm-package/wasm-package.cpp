@@ -58,9 +58,13 @@ int main(int argc, const char *argv[]) {
             if (lstat(name, &status) == 0) {
                 buffer.write<std::string_view>(name);
                 buffer.write<std::uint64_t>(status.st_mode);
+#if defined(__APPLE__)
+                buffer.write<std::uint64_t>(status.st_atimespec.tv_sec);
+                buffer.write<std::uint64_t>(status.st_mtimespec.tv_sec);
+#else
                 buffer.write<std::uint64_t>(status.st_atim.tv_sec);
                 buffer.write<std::uint64_t>(status.st_mtim.tv_sec);
-
+#endif
                 switch (status.st_mode & S_IFMT) {
                     case S_IFREG: // normal file
                         buffer.write(readFile(name));

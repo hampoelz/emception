@@ -2,6 +2,7 @@
 build**/
 upstream**/
 **/dist/
+**/cmake-build**/
 
 # build cache files
 **/*.idx
