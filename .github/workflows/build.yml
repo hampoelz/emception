@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        emscripten: [ '3.1.26', 'latest' ]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Build emception
+        run: |
+          sed -i '/^EMSCRIPTEN_VERSION=/s/=.*/=${{ matrix.emscripten }}/' .env
+          ./build-with-docker.sh
+      - name: Bundle emception
+        working-directory: bundling
+        run: |
+          npm install
+          npm run bundle
+      - name: Archive artifacts
+        working-directory: bundling
+        run: zip -r ../emception.zip dist
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: emception-bundle
+          path: emception.zip
