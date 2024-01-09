@@ -114,6 +114,13 @@ RUN echo "## Update and install packages" \
         libssl-dev \
         curl \
         gnupg \
+        libncurses5-dev \
+        libgdbm-dev \
+        libnss3-dev \
+        libreadline-dev \
+        libffi-dev \
+        libsqlite3-dev \
+        libbz2-dev \
     # Standard Cleanup on Debian images
     && apt-get -y clean \
     && apt-get -y autoclean \
