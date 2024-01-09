@@ -89,11 +89,11 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
     rm -rf filename fileName
     echo $PYTHONEXE
 
+    embuilder build zlib bzip2 MINIMAL_PIC
+    embuilder --pic build zlib bzip2 MINIMAL_PIC
+
     # Build cpython with asyncify support.
-    # Disable sqlite3, zlib and bzip2, which cpython enables by default
     CONFIG_SITE=$CPYTHON_SRC/Tools/wasm/config.site-wasm32-emscripten \
-    LIBSQLITE3_CFLAGS=" " \
-    BZIP2_CFLAGS=" " \
     LDFLAGS="\
         -s ALLOW_MEMORY_GROWTH=1 \
         -s EXPORTED_FUNCTIONS=_main,_free,_malloc \
