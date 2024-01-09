@@ -2,34 +2,42 @@ name: Build without Dockerimage
 
 on:
   push:
-    branches: [ master ]
+    branches: [ build-test ]
   workflow_dispatch:
 
 jobs:
-  build:
-    name: Build
+  build_python:
+    name: Build python
     runs-on: ubuntu-latest
     container: emscripten/emsdk:3.1.51
     steps:
       - name: Install requirements
         run: |
           apt-get update -y
-          apt-get install -y pkg-config build-essential ninja-build brotli autoconf autoconf-archive automake jq
           apt-get install -y zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Build emception
-        run: ./build.sh
-      - name: Bundle emception
-        working-directory: bundling
+      - name: Prebuild static libraries
         run: |
-          npm install
-          npm run bundle
-      - name: Archive artifacts
-        working-directory: bundling
-        run: zip -r ../emception.zip dist
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+          embuilder build zlib bzip2 MINIMAL_PIC
+          embuilder --pic build zlib bzip2 MINIMAL_PIC
+      - name: Checkout python
+        uses: actions/checkout@v4
         with:
-          name: emception-bundle
-          path: emception.zip
+          repository: python/cpython
+          ref: '3.12'
+      - name: Build python interpreter
+        run: |
+          mkdir -p builddir/build
+          cd builddir/build
+          ../../configure -C
+          make -j$(nproc)
+      - name: Build python to wasm32-emscripten
+        run: |
+          mkdir -p builddir/emscripten-browser
+          cd builddir/emscripten-browser
+          CONFIG_SITE=../../Tools/wasm/config.site-wasm32-emscripten \
+            emconfigure ../../configure -C \
+              --host=wasm32-unknown-emscripten \
+              --build=$(../../config.guess) \
+              --with-emscripten-target=browser \
+              --with-build-python=$(pwd)/../build/python
+          emmake make -j$(nproc)
