@@ -58,7 +58,7 @@ if [ ! -d $CPYTHON_NATIVE/ ]; then
 
     pushd $CPYTHON_NATIVE/
 
-    $CPYTHON_SRC/configure -C --host=x86_64-pc-linux-gnu --build=$($CPYTHON_SRC/config.guess) --with-suffix=""
+    $CPYTHON_SRC/configure -C --host=i686-pc-linux-gnu --build=$($CPYTHON_SRC/config.guess) --with-suffix=""
     make -j$(nproc)
 
     popd
