@@ -1,4 +1,4 @@
-name: Build
+name: Build without Dockerimage
 
 on:
   push:
@@ -9,17 +9,17 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        emscripten: [ '3.1.26', 'latest' ]
+    container: emscripten/emsdk:3.1.51
     steps:
+      - name: Install requirements
+        run: |
+          apt-get update -y
+          apt-get install -y pkg-config build-essential ninja-build brotli autoconf autoconf-archive automake jq
+          apt-get install -y zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev wget libbz2-dev
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Build emception
-        run: |
-          sed -i '/^EMSCRIPTEN_VERSION=/s/=.*/=${{ matrix.emscripten }}/' .env
-          ./build-with-docker.sh
+        run: ./build.sh
       - name: Bundle emception
         working-directory: bundling
         run: |

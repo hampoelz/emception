@@ -58,7 +58,7 @@ if [ ! -d $CPYTHON_NATIVE/ ]; then
 
     pushd $CPYTHON_NATIVE/
 
-    $CPYTHON_SRC/configure -C --host=i686-pc-linux-gnu --build=x86_64-pc-linux-gnu --with-suffix=""
+    $CPYTHON_SRC/configure -C
     make -j$(nproc)
 
     popd
@@ -79,16 +79,6 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
 
     pushd $CPYTHON_BUILD/
 
-    # for compatibility reasons check if filesystem is case sensitive. if it is case sensitive set PYTHONEXE to python, if not set it to python.exe
-    touch filename fileName
-    if [ $(du -a file* | wc -l | xargs) -eq 2 ]; then
-        PYTHONEXE=python
-    else
-        PYTHONEXE=python.exe
-    fi
-    rm -rf filename fileName
-    echo $PYTHONEXE
-
     embuilder build zlib bzip2 MINIMAL_PIC
     embuilder --pic build zlib bzip2 MINIMAL_PIC
 
@@ -108,7 +98,7 @@ if [ ! -d $CPYTHON_BUILD/ ]; then
         --with-suffix=".mjs" \
         --disable-wasm-preload \
         --enable-wasm-js-module \
-        --with-build-python=$CPYTHON_NATIVE/$PYTHONEXE \
+        --with-build-python=$CPYTHON_NATIVE/python \
 
     emmake make -j$(nproc)
 
