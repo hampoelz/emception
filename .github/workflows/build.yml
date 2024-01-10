@@ -9,7 +9,11 @@ jobs:
   build_python:
     name: Build python
     runs-on: ubuntu-latest
-    container: emscripten/emsdk:3.1.49
+    strategy:
+      fail-fast: false
+      matrix:
+        emscripten: [ '3.1.26', '3.1.27', '3.1.28', '3.1.29', '3.1.30', '3.1.31', '3.1.32', '3.1.33', '3.1.34', '3.1.35', '3.1.36', '3.1.37', '3.1.38', '3.1.39', '3.1.40', '3.1.41', '3.1.42', '3.1.43', '3.1.44', '3.1.45', '3.1.46', '3.1.47', '3.1.48', '3.1.49', '3.1.50', '3.1.51' ]
+    container: 'emscripten/emsdk:${{ matrix.emscripten }}'
     steps:
       - name: Install requirements
         run: |
