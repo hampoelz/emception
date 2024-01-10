@@ -41,3 +41,9 @@ jobs:
               --with-emscripten-target=browser \
               --with-build-python=$(pwd)/../build/python
           emmake make -j$(nproc)
+      - name: Verify build
+        run: |
+          if [ ! -f python.html ]; then
+              echo "python.html not found"
+              exit 1
+          fi
