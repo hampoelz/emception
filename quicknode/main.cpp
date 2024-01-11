@@ -40,6 +40,7 @@ class QuickNode {
         add_process();
         add_assert();
         add_fs();
+        add_vm();
         add_path();
     }
 
@@ -164,6 +165,24 @@ class QuickNode {
         });
 
         m_require_cache.insert({"fs", fs});
+    }
+
+    void add_vm() {
+        auto vm = m_context.newObject();
+        
+        vm.add("runInThisContext", [this](std::string code) {
+            try {
+                return m_context.eval(code, "evalmachine.<anonymous>", JS_EVAL_TYPE_INDIRECT);
+            } catch(qjs::exception const & exc) {
+                std::cerr << "Unhandled exception: ";
+                dump_exception();
+            } catch(std::exception const & e) {
+                std::cerr << "Unhandled native exception: ";
+                std::cerr << e.what() << "\n";
+            }
+        });
+
+        m_require_cache.insert({"vm", vm});
     }
 
     void add_assert() {

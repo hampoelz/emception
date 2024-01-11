@@ -10,7 +10,7 @@ SRC=$(realpath "$SRC")
 
 # We use here 3.1.24 since that's the latest tag it's been tested with.
 # Feel free to try a newer version
-curl --silent --output emscripten.zip --location https://github.com/emscripten-core/emscripten/archive/refs/tags/3.1.24.zip
+curl --silent --output emscripten.zip --location https://github.com/emscripten-core/emscripten/archive/refs/tags/3.1.49.zip
 unzip -q emscripten.zip
 rm emscripten.zip
 mv emscripten-* emscripten
@@ -26,9 +26,7 @@ cat package.json \
     > _package.json
 mv _package.json package.json
 
-# Patch emscripten to:
-# * avoid invalidating the cache
-# * fix a bug with proxy_to_worker
+# Patch emscripten to avoid invalidating the cache
 patch -p2 < $SRC/emscripten.patch
 
 # Install dependencies (but nor development dependencies)
@@ -53,7 +51,7 @@ rm -Rf \
 if [ -d /emsdk/upstream/emscripten/cache ]; then
   cp -R /emsdk/upstream/emscripten/cache ./cache
 else
-  CONTAINER_ID=$(docker create emscripten/emsdk:3.1.24)
+  CONTAINER_ID=$(docker create emscripten/emsdk:3.1.49)
   docker cp $CONTAINER_ID:/emsdk/upstream/emscripten/cache ./cache
   docker rm $CONTAINER_ID
 fi
