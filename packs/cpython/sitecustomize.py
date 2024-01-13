@@ -75,7 +75,7 @@ class Popen(object):
         if callable(getattr(stderr, 'write', None)):
             stderr.write(self.stderr);
         
-        if not (text or universal_newlines or encode or error):
+        if not (text or universal_newlines or encoding or errors):
             self.stdout = self.stdout.encode('utf-8');
             self.stderr = self.stderr.encode('utf-8');
 
