@@ -10,7 +10,7 @@ SRC=$(realpath "$SRC")
 
 # We use here 3.1.24 since that's the latest tag it's been tested with.
 # Feel free to try a newer version
-curl --silent --output emscripten.zip --location https://github.com/emscripten-core/emscripten/archive/refs/tags/3.1.49.zip
+curl --silent --output emscripten.zip --location https://github.com/emscripten-core/emscripten/archive/refs/tags/3.1.50.zip
 unzip -q emscripten.zip
 rm emscripten.zip
 mv emscripten-* emscripten
