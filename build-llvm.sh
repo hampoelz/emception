@@ -38,16 +38,16 @@ fi
 
 # todo: create a way to reconfigure if the folder exists
 # Cross compiling llvm needs a native build of "llvm-tblgen" and "clang-tblgen"
-if [ ! -d $LLVM_NATIVE/ ]; then
-    echo "Configuring LLVM_NATIVE"
-    cmake -G Ninja \
-        -S $LLVM_SRC/llvm/ \
-        -B $LLVM_NATIVE/ \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DLLVM_TARGETS_TO_BUILD=WebAssembly \
-        -DLLVM_ENABLE_PROJECTS="clang"
-fi
-cmake --build $LLVM_NATIVE/ -- llvm-tblgen clang-tblgen
+# if [ ! -d $LLVM_NATIVE/ ]; then
+#     echo "Configuring LLVM_NATIVE"
+#     cmake -G Ninja \
+#         -S $LLVM_SRC/llvm/ \
+#         -B $LLVM_NATIVE/ \
+#         -DCMAKE_BUILD_TYPE=Release \
+#         -DLLVM_TARGETS_TO_BUILD=WebAssembly \
+#         -DLLVM_ENABLE_PROJECTS="clang"
+# fi
+# cmake --build $LLVM_NATIVE/ -- llvm-tblgen clang-tblgen
 
 # todo: create a way to reconfigure if the folder exists
 if [ ! -d $LLVM_BUILD/ ]; then
@@ -64,18 +64,22 @@ if [ ! -d $LLVM_BUILD/ ]; then
         -S $LLVM_SRC/llvm/ \
         -B $LLVM_BUILD/ \
         -DCMAKE_BUILD_TYPE=Release \
+        -DLLVM_ENABLE_LIBXML2=OFF \
+        -DLLVM_ENABLE_LLD=ON \
+        -DLLVM_ENABLE_PROJECTS="lld;clang" \
+        -DLLVM_ENABLE_ASSERTIONS=ON \
         -DLLVM_TARGETS_TO_BUILD=WebAssembly \
-        -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" \
-        -DLLVM_ENABLE_DUMP=OFF \
-        -DLLVM_ENABLE_ASSERTIONS=OFF \
-        -DLLVM_ENABLE_EXPENSIVE_CHECKS=OFF \
-        -DLLVM_ENABLE_BACKTRACES=OFF \
-        -DLLVM_BUILD_TOOLS=OFF \
-        -DLLVM_ENABLE_THREADS=OFF \
-        -DLLVM_BUILD_LLVM_DYLIB=OFF \
-        -DLLVM_INCLUDE_TESTS=OFF \
-        -DLLVM_TABLEGEN=$LLVM_NATIVE/bin/llvm-tblgen \
-        -DCLANG_TABLEGEN=$LLVM_NATIVE/bin/clang-tblgen
+        -DLLVM_INCLUDE_EXAMPLES=OFF \
+        -DLLVM_INCLUDE_TESTS=OFF
+        #-DLLVM_ENABLE_DUMP=OFF \
+        #-DLLVM_ENABLE_ASSERTIONS=OFF \
+        #-DLLVM_ENABLE_EXPENSIVE_CHECKS=OFF \
+        #-DLLVM_ENABLE_BACKTRACES=OFF \
+        #-DLLVM_ENABLE_THREADS=OFF \
+        #-DLLVM_BUILD_TOOLS=OFF \
+        #-DLLVM_BUILD_LLVM_DYLIB=OFF \
+        #-DLLVM_TABLEGEN=$LLVM_NATIVE/bin/llvm-tblgen \
+        #-DCLANG_TABLEGEN=$LLVM_NATIVE/bin/clang-tblgen
 
     echo "Patching build.ninja"
     # Make sure we build js modules (.mjs).
